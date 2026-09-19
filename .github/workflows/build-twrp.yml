@@ -1,0 +1,61 @@
+name: Build TWRP 8.1 for m9_x15 (k53_cb_m1_x15)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Free Disk Space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+    - name: Set up Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
+
+    - name: Install Repo
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
+
+    - name: Checkout Device Tree
+      uses: actions/checkout@v3
+      with:
+        path: device_tree
+
+    - name: Initialize TWRP 8.1 Minimal Manifest
+      run: |
+        mkdir -p ~/twrp
+        cd ~/twrp
+        git config --global user.name "Builder"
+        git config --global user.email "builder@github.com"
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
+        repo sync -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Copy Device Tree
+      run: |
+        mkdir -p ~/twrp/device/alps/k53_cb_m1_x15
+        cp -r device_tree/* ~/twrp/device/alps/k53_cb_m1_x15/
+        rm -rf ~/twrp/device/alps/k53_cb_m1_x15/.git
+
+    - name: Build TWRP Recovery
+      run: |
+        cd ~/twrp
+        source build/envsetup.sh
+        export ALLOW_MISSING_DEPENDENCIES=true
+        lunch omni_k53_cb_m1_x15-eng
+        mka recoveryimage -j$(nproc --all)
+
+    - name: Upload TWRP Recovery Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: TWRP-m9_x15-recovery
+        path: ~/twrp/out/target/product/k53_cb_m1_x15/recovery.img
