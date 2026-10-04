@@ -1,0 +1,25 @@
+# Android build output / artifacts
+out/
+*.img
+*.zip
+*.tar
+*.gz
+*.log
+
+# Device dumps and testing binaries
+boot.img
+recovery.img
+stock-*.bin
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Editors & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
