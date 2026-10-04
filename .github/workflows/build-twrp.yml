@@ -1,21 +1,33 @@
-name: Build TWRP 8.1 for m9_x15 (k53_cb_m1_x15)
+name: Build TWRP for m9_x15 (k53_cb_m1_x15)
 
 on:
   workflow_dispatch:
+  push:
+    # Documentation-only changes do not need an 11 minute build.
+    paths-ignore:
+      - '**.md'
+
+# A newer push supersedes the older build of the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 120
     steps:
     - name: Free Disk Space
       run: |
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/lib/android
         sudo rm -rf "/usr/local/share/boost"
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo apt-get clean
 
     - name: Set up Java 8
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         distribution: 'zulu'
         java-version: '8'
@@ -33,6 +45,15 @@ jobs:
         python --version || true
         python3 --version || true
 
+    - name: Restore ccache
+      uses: actions/cache@v6
+      with:
+        path: ~/.ccache
+        key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ github.sha }}
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ github.ref_name }}-
+          ccache-${{ runner.os }}-
+
     - name: Install Repo
       run: |
         mkdir -p ~/bin
@@ -41,11 +62,11 @@ jobs:
         sudo ln -sf ~/bin/repo /usr/bin/repo
 
     - name: Checkout Device Tree
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         path: device_tree
 
-    - name: Initialize TWRP 8.1 Minimal Manifest
+    - name: Initialize TWRP Minimal Manifest (twrp-8.1)
       run: |
         mkdir -p ~/twrp
         cd ~/twrp
@@ -66,11 +87,31 @@ jobs:
         cd ~/twrp
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
+        export USE_CCACHE=1
+        export CCACHE_DIR="$HOME/.ccache"
+        export CCACHE_EXEC=/usr/bin/ccache
+        export CCACHE_COMPRESS=1
+        export CCACHE_MAXSIZE=5G
+        ccache -z
         lunch omni_k53_cb_m1_x15-eng
         mka recoveryimage -j$(nproc --all)
+        ccache -s
+
+    - name: Verify Recovery Image Fits Partition
+      run: |
+        IMG=~/twrp/out/target/product/k53_cb_m1_x15/recovery.img
+        ls -l "$IMG"
+        SIZE=$(stat -c%s "$IMG")
+        LIMIT=25165824   # BOARD_RECOVERYIMAGE_PARTITION_SIZE (24 MiB)
+        echo "recovery.img = $SIZE bytes, partition limit = $LIMIT bytes"
+        if [ "$SIZE" -gt "$LIMIT" ]; then
+          echo "::error::recovery.img ($SIZE B) exceeds BOARD_RECOVERYIMAGE_PARTITION_SIZE ($LIMIT B)"
+          exit 1
+        fi
 
     - name: Upload TWRP Recovery Image
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: TWRP-m9_x15-recovery
         path: ~/twrp/out/target/product/k53_cb_m1_x15/recovery.img
+        if-no-files-found: error

@@ -14,7 +14,7 @@ ALLOW_MISSING_DEPENDENCIES := true
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
-TARGET_CPU_ABI2 := 
+TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := generic
 
@@ -43,11 +43,19 @@ BOARD_RAMDISK_OFFSET := 0x03f88000
 BOARD_KERNEL_TAGS_OFFSET := 0x0df88000
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
+# Only used when the kernel is built from source (kbuild target name).
+# NOTE: the prebuilt blob below is NOT a bare Image - it is
+# "gzip(arm64 Image) + appended DTB", i.e. MTK's Image.gz-dtb export.
+# Use tools/compare-kernel.py to diff it against the stock boot/recovery image.
 BOARD_KERNEL_IMAGE_NAME := Image
 TARGET_KERNEL_CONFIG := k53_cb_m1_x15_defconfig
 TARGET_KERNEL_SOURCE := kernel/alps/k53_cb_m1_x15
 
 # Kernel - prebuilt
+# NOTE: TARGET_FORCE_PREBUILT_KERNEL is not consumed by the TWRP/Omni build
+# system (kept for documentation only). The prebuilt blob is picked up because
+# TARGET_PREBUILT_KERNEL is set and the TARGET_KERNEL_SOURCE tree is absent -
+# see vendor/omni/build/tasks/kernel.mk (KERNEL_BIN := $(TARGET_PREBUILT_KERNEL)).
 TARGET_FORCE_PREBUILT_KERNEL := true
 ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
@@ -71,9 +79,10 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 
 # Security patch level
-VENDOR_SECURITY_PATCH := 2021-08-01
-
-# Hack: prevent anti rollback
+# The stock ROM patch level is 2021-08-01; 2099-12-31 is a deliberate
+# "anti-rollback" hack so that mkbootimg's --os_patch_level / --os_version
+# never blocks flashing. PLATFORM_VERSION is intentionally bogus for the
+# same reason. Do not "fix" these values unless you know why they are set.
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := 2099-12-31
 PLATFORM_VERSION := 16.1.0

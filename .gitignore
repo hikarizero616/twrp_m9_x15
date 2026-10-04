@@ -1,0 +1,19 @@
+# Build output / tooling leftovers (repo is meant to hold only the device tree)
+out/
+*.img
+*.zip
+*.log
+
+# Device dumps used with tools/compare-kernel.py
+boot.img
+recovery.img
+stock-*.bin
+
+# Python
+__pycache__/
+*.pyc
+
+# Editors
+.idea/
+.vscode/
+*.swp
