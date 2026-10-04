@@ -30,7 +30,8 @@ OVERRIDE_TARGET_FLATTEN_APEX := true
 TARGET_BOOTLOADER_BOARD_NAME := k53_cb_m1_x15
 TARGET_NO_BOOTLOADER := true
 
-# Display
+# Display (Android MP4: typically 3.5"~5.0" screen)
+# If UI elements are oversized or cut off, adjust TARGET_SCREEN_DENSITY (e.g. 160/200) or switch TW_THEME below
 TARGET_SCREEN_DENSITY := 240
 
 # Kernel
@@ -77,6 +78,7 @@ VENDOR_SECURITY_PATCH := 2099-12-31
 PLATFORM_VERSION := 16.1.0
 
 # TWRP Configuration
+# Note: For small-screen MP4 players (e.g. 480x800 / 480x854), switch to portrait_mdpi if portrait_hdpi overflows
 TW_THEME := portrait_hdpi
 TW_EXTRA_LANGUAGES := true
 TW_SCREEN_BLANK_ON_BOOT := true

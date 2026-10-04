@@ -3,7 +3,7 @@
 [![Build TWRP 8.1 for m9_x15](https://github.com/hikarizero616/twrp_m9_x15/actions/workflows/build-twrp.yml/badge.svg)](https://github.com/hikarizero616/twrp_m9_x15/actions/workflows/build-twrp.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Device configuration tree for building TeamWin Recovery Project (TWRP) for the **alps m9_x15** tablet (board: `k53_cb_m1_x15`, MediaTek MT6753 / MT6735).
+Device configuration tree for building TeamWin Recovery Project (TWRP) for the **alps m9_x15** Android MP4 Player / PMP (board: `k53_cb_m1_x15`, MediaTek MT6753 / MT6735).
 
 ---
 
@@ -22,6 +22,7 @@ Device configuration tree for building TeamWin Recovery Project (TWRP) for the *
 
 | 项目 | 参数 |
 |---|---|
+| 设备类型 | 安卓智能 MP4 随身播放器 / Portable Media Player (PMP) |
 | 设备型号 | alps m9_x15 |
 | 主板代号 | `k53_cb_m1_x15` |
 | 芯片平台 | MediaTek MT6753 (内核报告 `ro.hardware=mt6735`) |
@@ -29,6 +30,20 @@ Device configuration tree for building TeamWin Recovery Project (TWRP) for the *
 | 原厂底包版本 | Android 8.1.0 Oreo |
 | Recovery 分区上限 | 24 MiB (`25,165,824` 字节) |
 | Recovery 底包 | Android 8.1 基础构建环境 + TWRP 3.7.0 (android-9.0 recovery 源码) |
+| 外置存储 | MicroSD / TF 卡扩展 (`/external_sd`)，支持 USB-OTG |
+
+### MP4 设备适配要点
+
+1. **屏幕尺寸与 UI 缩放**：
+   - 作为便携触屏 MP4，屏幕尺寸一般在 3.5 ~ 5.0 英寸左右。
+   - 当前预设为 `TW_THEME := portrait_hdpi` + `TARGET_SCREEN_DENSITY := 240`。
+   - 若上机后发现按钮字体过大、界面溢出或截断，可将 [`BoardConfig.mk`](BoardConfig.mk) 中的主题切换为 `TW_THEME := portrait_mdpi`，并将密度调整为 `160` 或 `200`。
+2. **MicroSD / TF 卡挂载**：
+   - MP4 播放器日常刷机与媒体存放主要依赖 TF 卡。`recovery.fstab` 中已规范配置 `/external_sd` 挂载参数（`storage;wipeingui;removable`），TWRP 界面内点击「选择存储器」可直接读取外置 TF 卡。
+3. **无蜂窝基带特性**：
+   - 该设备为纯无线多媒体播放设备，无 SIM 模块与蜂窝基带。
+4. **USB 与充电**：
+   - `init.recovery.mt6735.rc` 中配置了 USB 插入检测机制，进入 Recovery 时会自动拉高 USB 电源并启动 adbd 服务，保障小电池容量下的调试续航。
 
 ### 内核与 GPLv2 合规说明
 
@@ -74,12 +89,19 @@ mka recoveryimage -j$(nproc)
 
 ### Specifications
 
-* **Device**: alps m9_x15
+* **Device Type**: Android Portable Media Player (PMP / MP4)
+* **Device Model**: alps m9_x15
 * **Board**: `k53_cb_m1_x15`
 * **SoC**: MediaTek MT6753 / MT6735
 * **Base OS**: Android 8.1 Oreo
 * **Recovery Partition**: 24 MiB (`25,165,824` bytes)
 * **TWRP Base**: Minimal TWRP 8.1 manifest with TWRP 3.7.x recovery engine
+* **Storage**: Internal eMMC + MicroSD (TF card) expansion + USB-OTG
+
+### MP4 Form Factor Notes
+
+* **Screen Scaling**: Given the compact touchscreen dimensions typical of Android MP4 players, if UI elements appear oversized with `portrait_hdpi`, switch `TW_THEME` to `portrait_mdpi` and set `TARGET_SCREEN_DENSITY` to `160` or `200` in [`BoardConfig.mk`](BoardConfig.mk).
+* **MicroSD Mount**: Configured as `/external_sd` with proper storage flags for easy access in TWRP's Install and Backup screens.
 
 ### Kernel & GPLv2 Notice
 

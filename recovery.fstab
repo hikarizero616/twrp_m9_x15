@@ -8,8 +8,8 @@
 /vendor/protect_s     ext4     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/protect2     flags=display=protect_s
 /vendor/nvdata        ext4     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/nvdata       flags=display=nvdata
 /persistent           emmc     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/frp          flags=display=persistent
-auto                  auto     /devices/mtk-msdc.0/11240000.msdc1*                                flags=display=auto
-auto                  auto     /devices/platform/mt_usb*                                          flags=display=auto
+/external_sd          auto     /devices/mtk-msdc.0/11240000.msdc1*                                flags=display="MicroSD Card";storage;wipeingui;removable
+/usb_otg              auto     /devices/platform/mt_usb*                                          flags=display="USB-OTG";storage;wipeingui;removable
 /nvram                emmc     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/nvram        flags=display=nvram
 /proinfo              emmc     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/proinfo      flags=display=proinfo
 /bootloader           emmc     /dev/block/platform/mtk-msdc.0/11230000.msdc0/by-name/lk           flags=display=bootloader
