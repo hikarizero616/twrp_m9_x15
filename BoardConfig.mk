@@ -16,14 +16,12 @@ TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 := 
 TARGET_CPU_VARIANT := generic
-TARGET_CPU_VARIANT_RUNTIME := generic
 
 TARGET_2ND_ARCH := arm
 TARGET_2ND_ARCH_VARIANT := armv7-a-neon
 TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := generic
-TARGET_2ND_CPU_VARIANT_RUNTIME := generic
 
 # APEX
 OVERRIDE_TARGET_FLATTEN_APEX := true
@@ -71,8 +69,6 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 
 # Security patch level
-VENDOR_SECURITY_PATCH := 2021-08-01
-
 # Hack: prevent anti rollback
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := 2099-12-31
@@ -84,3 +80,8 @@ TW_EXTRA_LANGUAGES := true
 TW_SCREEN_BLANK_ON_BOOT := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
+
+# Display: TWRP's minui (built from android-9.0) assumes an RGBX framebuffer,
+# which is also the built-in default; keep it explicit here. If the screen shows
+# swapped red/blue on device, switch this to "BGRA_8888" (or "ABGR_8888") and rebuild.
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
